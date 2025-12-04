@@ -19,8 +19,6 @@
   output: "Falco BLOCKED: T1059.004 Attack simulation detected and blocked in container %container.name (user=%user.name cmdline=%proc.cmdline)"
   priority: WARNING
   tags: [container, mitre_execution, block, t1059]
-  actions:
-    - kill_process
 
 - rule: Block sh -c id in victim container
   desc: Detect and block the specific execution of 'sh -c id' by root in the 'victim' container. This activity was observed and is being explicitly blocked.
@@ -30,9 +28,8 @@
     proc.cmdline = "sh -c id" and
     container.name = "victim" and
     user.name = "root"
-  output: "Blocked specific activity: 'sh -c id' executed by %user.name% in container %container.name% (proc=%proc.name% cmdline=%proc.cmdline%)"
+  output: "Blocked specific activity: 'sh -c id' executed by %user.name in container %container.name (proc=%proc.name cmdline=%proc.cmdline)"
   priority: WARNING
-  actions: [kill]
 
 - rule: Block whoami execution in victim container
   desc: Detect and alert on 'sh -c whoami' execution by root in the 'victim' container, indicating potential privilege escalation or reconnaissance.
@@ -72,8 +69,6 @@
   output: "Specific T1555 simulation command blocked in container (user=%user.name container=%container.name cmdline=%proc.cmdline)"
   priority: WARNING
   tags: [container, mitre_execution, block]
-  actions:
-    - kill
 
 - rule: Block sh reading shadow in victim container
   desc: Detect and block attempts by a root shell to read /etc/shadow within the 'victim' container. This activity is highly indicative of privilege escalation or sensitive data exfiltration.
@@ -90,8 +85,6 @@
     fd.name = "/etc/shadow"
   output: Sensitive file access BLOCKED | user=%user.name file=%fd.name program=%proc.name command=%proc.cmdline
   priority: WARNING
-  actions:
-    - kill_process
 
 - rule: Block_Root_Cat_Passwd_Shell_In_Container
   desc: Detects and flags attempts by the root user to execute 'cat /etc/passwd' via 'sh' within a container, indicating potential credential access and should be blocked.
@@ -101,6 +94,6 @@
     proc.cmdline = "sh -c cat /etc/passwd" and
     user.name = "root" and
     container.id != host
-  output: "BLOCK: Root user '%user.name%' attempted to execute '%proc.cmdline%' in container '%container.name%' (id=%container.id%). This activity has been flagged for termination."
+  output: "BLOCK: Root user '%user.name' attempted to execute '%proc.cmdline' in container '%container.name' (id=%container.id). This activity has been flagged for termination."
   priority: WARNING
   tags: [container, mitre_credential_access, block_activity]
