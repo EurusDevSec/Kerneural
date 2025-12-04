@@ -25,3 +25,14 @@ class RedAgent:
         scenario = ATTACK_SCENARIOS.get(technique_id)
         if not scenario:
             console.print(f"[yellow]Technique {technique_id} not defined.[/yellow]")
+            return 
+        console.print(f"\n[bold red]>>> Executing Attack: {technique_id} - {scenario['name']} [/bold red]")
+
+        for cmd in scenario['commands']:
+            console.print(f"[cyan]Running cmd:[/cyan] {cmd}")
+            try:
+                # thuc thi lenh trong container ( tuong tu docker exec)
+                exit_code, output = self.container.exec_run(cmd)
+
+                if exit_code ==0:
+                    console.print(f"   [green]Success:[/green] {output.de}")
