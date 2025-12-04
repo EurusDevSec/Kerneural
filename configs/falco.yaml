@@ -8,6 +8,9 @@ plugins:
   - name: container
     library_path: libcontainer.so
 
+engine:
+  kind: modern_ebpf
+
 json_output: true
 json_include_output_property: true
 json_include_tags_property: true

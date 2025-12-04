@@ -28,7 +28,7 @@ services:
       - ./logs:/var/log/falco
     environment:
       - FALCO_BPF_PROBE=""
-      - HOST_ROOT=/host
       - FALCO_DRIVER_LOADER_IMAGE=falcosecurity/falco-driver-loader:latest
       - FALCO_DRIVER_REPO=https://download.falco.org/driver
-      - FALCO_BPF_PROBE=/root/.falco/falco-bpf.o
+      - FALCO_MODERN_BPF=true
+      - HOST_ROOT=/host
