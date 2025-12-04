@@ -2,14 +2,11 @@ rules_files:
   - /etc/falco/falco_rules.yaml
   - /etc/falco/falco_rules.local.yaml
 
-load_plugins: [container, json]
+load_plugins: [container]
 
 plugins:
   - name: container
     library_path: libcontainer.so
-  - name: json
-    library_path: libjson.so
-    init_config: ""
 
 json_output: true
 json_include_output_property: true
