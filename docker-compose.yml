@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  #1. The victim
+  victim:
+    image: nginx:latest
+    container_name: victim
+    ports:
+      - "8080:80"
+    volumes:
+      - ./tmp_victim:/tmp_data
+    restart: always
+  
+  #2. The Blue Agent (Falco Sensor)
+  falco:
+    image: falcosecurity/falco:latest
+    container_name: falco
+    privileged: true
+    pid: "host"
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - /dev:/host/dev
+      - ./configs/falco.yaml:/etc/falce/falce.yaml
+      - ./configs/falco_rules.local.yaml:/etc/falce/falco_rules.local.yaml
+      - ./logs:/var/log/falco
+    environment:
+      - FALCO_BPF_PROBE=""
