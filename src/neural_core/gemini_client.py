@@ -1,7 +1,8 @@
 import os
 import google.generativeai as genai
 from dotenv import load_dotenv
-from scr.neural_core_prompts import SYSTEM_PROMPT, RULE_GENERATION_PROMPT
+from src.neural_core.prompts import SYSTEM_PROMPT, RULE_GENERATION_PROMPT
+
 
 load_dotenv()
 
