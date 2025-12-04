@@ -35,4 +35,8 @@ class RedAgent:
                 exit_code, output = self.container.exec_run(cmd)
 
                 if exit_code ==0:
-                    console.print(f"   [green]Success:[/green] {output.de}")
+                    console.print(f"   [green]Success:[/green] {output.decode('utf-8').strip()}")
+                else:
+                    console.print(f"   [red]Faled (Code {exit_code}):[/red] {output.decode('utf-8').strip()}")
+            except Exception as e:
+                console.print(f"   [bold red]Error:[/bold red] {str(e)}")
