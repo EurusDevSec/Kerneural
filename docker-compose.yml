@@ -20,8 +20,11 @@ services:
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
       - /dev:/host/dev
-      - ./configs/falco.yaml:/etc/falce/falce.yaml
-      - ./configs/falco_rules.local.yaml:/etc/falce/falco_rules.local.yaml
+      - /proc:/host/proc:ro
+      - /etc:/host/etc:ro
+      - ./configs/falco.yaml:/etc/falco/falco.yaml
+      - ./configs/falco_rules.local.yaml:/etc/falco/falco_rules.local.yaml
       - ./logs:/var/log/falco
     environment:
       - FALCO_BPF_PROBE=""
+      - HOST_ROOT=/host
