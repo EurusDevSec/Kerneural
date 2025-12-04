@@ -1,22 +1,24 @@
-# Turn on output to file
+rules_file:
+  - /etc/falco/falco_rules.yaml
+  - /etc/falco/falco_rules.local.yaml
+
 json_output: true
 json_include_output_property: true
 json_include_tags_property: true
 
-# config log file to output
 file_output:
   enabled: true
   keep_alive: false
-  filename: /var/log/falco/falco_events.json_include_output_property
+  filename: /var/log/falco/falco_events.json
 
-# Tắt output ra stdout đỡ rối (option)
 stdout_output:
   enabled: false
 
-  # các cấu hình khác giữ mặc định
-  log_stderr: true
-  log_syslog: false
-  webserver:
-    enabled: false
-  program_output:
-    enabled: false
+log_stderr: true
+log_syslog: false
+
+webserver:
+  enabled: false
+
+program_output:
+  enabled: false
