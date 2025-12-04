@@ -27,5 +27,16 @@ class NeuralBrain:
             print(f"Error generating rule: {e}")
             return None
         
-        def clean_response(self, text):
-            
+    def clean_response(self, text):
+        """
+        Làm sạch response để chỉ lấy nội dung YAML.
+        Loại bỏ markdown ```yaml ... ``` nếu có.
+        """
+        text = text.strip()
+        if text.startswith("```yaml"):
+            text = text.replace("```yaml", "", 1)
+        if text.startswith("```"):
+            text = text.replace("```", "", 1)
+        if text.endswith("```"):
+            text = text[:-3]
+        return text.strip()
