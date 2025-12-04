@@ -75,7 +75,8 @@
   condition: spawned_process and proc.name = "sh" and proc.cmdline = "sh -c cat /etc/shadow" and container.name = "victim" and user.name = "root"
   output: "BLOCK: Critical security event: Root shell (%user.name) attempted to read /etc/shadow via command '%proc.cmdline' in container '%container.name' (ID=%container.id). Action: Immediate termination of activity requested."
   priority: WARNING
-  tags: [container, mitre_privilege_escalation, mitre_collection, block_activity]
+  tags:
+    [container, mitre_privilege_escalation, mitre_collection, block_activity]
 
 - rule: Block cat accessing /etc/shadow
   desc: Detect and block attempts by the 'cat' program to read the /etc/shadow file. This is often an indicator of credential access attempts.
