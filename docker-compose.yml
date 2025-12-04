@@ -29,3 +29,4 @@ services:
       - FALCO_BPF_PROBE=""
       - HOST_ROOT=/host
       - FALCO_DRIVER_LOADER_IMAGE=falcosecurity/falco-driver-loader:latest
+      - FALCO_DRIVER_REPO=https://download.falco.org/driver
