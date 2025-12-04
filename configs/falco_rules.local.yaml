@@ -74,3 +74,33 @@
   tags: [container, mitre_execution, block]
   actions:
     - kill
+
+- rule: Block sh reading shadow in victim container
+  desc: Detect and block attempts by a root shell to read /etc/shadow within the 'victim' container. This activity is highly indicative of privilege escalation or sensitive data exfiltration.
+  condition: spawned_process and proc.name = "sh" and proc.cmdline = "sh -c cat /etc/shadow" and container.name = "victim" and user.name = "root"
+  output: "BLOCK: Critical security event: Root shell (%user.name) attempted to read /etc/shadow via command '%proc.cmdline' in container '%container.name' (ID=%container.id). Action: Immediate termination of activity requested."
+  priority: WARNING
+  tags: [container, mitre_privilege_escalation, mitre_collection, block_activity]
+
+- rule: Block cat accessing /etc/shadow
+  desc: Detect and block attempts by the 'cat' program to read the /etc/shadow file. This is often an indicator of credential access attempts.
+  condition: >
+    evt.type = openat and
+    proc.name = "cat" and
+    fd.name = "/etc/shadow"
+  output: Sensitive file access BLOCKED | user=%user.name file=%fd.name program=%proc.name command=%proc.cmdline
+  priority: WARNING
+  actions:
+    - kill_process
+
+- rule: Block_Root_Cat_Passwd_Shell_In_Container
+  desc: Detects and flags attempts by the root user to execute 'cat /etc/passwd' via 'sh' within a container, indicating potential credential access and should be blocked.
+  condition: |
+    evt.type = execve and
+    proc.name = "sh" and
+    proc.cmdline = "sh -c cat /etc/passwd" and
+    user.name = "root" and
+    container.id != host
+  output: "BLOCK: Root user '%user.name%' attempted to execute '%proc.cmdline%' in container '%container.name%' (id=%container.id%). This activity has been flagged for termination."
+  priority: WARNING
+  tags: [container, mitre_credential_access, block_activity]
