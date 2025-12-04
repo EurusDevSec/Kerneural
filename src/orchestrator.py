@@ -59,3 +59,8 @@ class KerneuralOrchestrator:
                 self.rule_manager.reload_falco()
 
                 console.print("[bold green]System Immunized![/bold green]")
+
+
+if __name__ == "__main__":
+    app=KerneuralOrchestrator()
+    app.start()
