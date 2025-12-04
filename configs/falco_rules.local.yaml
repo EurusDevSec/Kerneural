@@ -1,2 +1,9 @@
 # Custom rules for Kerneural
-# This file will be populated with AI-generated rules in Sprint 3
+- rule: Terminal shell in container
+  desc: A shell was used as the entrypoint for a container instance
+  condition: >
+    spawned_process and container
+    and proc.name in (shell_binaries)
+  output: "Shell spawned in a container (user=%user.name container_id=%container.id container_name=%container.name shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline)"
+  priority: NOTICE
+  tags: [container, mitre_execution]

@@ -22,6 +22,7 @@ services:
       - /dev:/host/dev
       - /proc:/host/proc:ro
       - /etc:/host/etc:ro
+      - /sys/kernel/debug:/sys/kernel/debug:ro
       - ./configs/falco.yaml:/etc/falco/falco.yaml
       - ./configs/falco_rules.local.yaml:/etc/falco/falco_rules.local.yaml
       - ./logs:/var/log/falco
@@ -29,4 +30,3 @@ services:
       - FALCO_BPF_PROBE=""
       - HOST_ROOT=/host
       - FALCO_DRIVER_LOADER_IMAGE=falcosecurity/falco-driver-loader:latest
-      - FALCO_BPF_PROBE=/root/.falco/falco-bpf.o
