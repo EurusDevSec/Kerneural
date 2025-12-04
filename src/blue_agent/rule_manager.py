@@ -10,15 +10,15 @@ class RuleManager:
         
         them rule moi vao file local config
         """
-    # doc noi dung cu tranh trung lap
-    if not os.path.exists(RULE_FILE_PATH):
-        with open(RULE_FILE_PATH,'w') as f:
-            f.write ("# Auto-generated rules\n")
+        # doc noi dung cu tranh trung lap
+        if not os.path.exists(RULE_FILE_PATH):
+            with open(RULE_FILE_PATH,'w') as f:
+                f.write ("# Auto-generated rules\n")
 
-    with open(RULE_FILE_PATH, 'a') as f:
-        f.write("\n"+ rule_yaml + "\n")
+        with open(RULE_FILE_PATH, 'a') as f:
+            f.write("\n"+ rule_yaml + "\n")
 
-    print(f"Rule added to {RULE_FILE_PATH}")
+        print(f"Rule added to {RULE_FILE_PATH}")
 
 
     def reload_falco(self):
