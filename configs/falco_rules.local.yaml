@@ -7,3 +7,70 @@
   output: "Shell spawned in a container (user=%user.name container_id=%container.id container_name=%container.name shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline)"
   priority: NOTICE
   tags: [container, mitre_execution]
+
+- rule: Block T1059.004 Simulation in Victim Container
+  desc: Specifically blocks the execution of 'sh -c echo Simulating T1059.004 Attack' by root user within the 'victim' container.
+  condition: |
+    spawned_process and
+    container.name="victim" and
+    user.name="root" and
+    proc.name="sh" and
+    proc.cmdline="sh -c echo 'Simulating T1059.004 Attack'"
+  output: "Falco BLOCKED: T1059.004 Attack simulation detected and blocked in container %container.name (user=%user.name cmdline=%proc.cmdline)"
+  priority: WARNING
+  tags: [container, mitre_execution, block, t1059]
+  actions:
+    - kill_process
+
+- rule: Block sh -c id in victim container
+  desc: Detect and block the specific execution of 'sh -c id' by root in the 'victim' container. This activity was observed and is being explicitly blocked.
+  condition: >
+    evt.type = execve and
+    proc.name = "sh" and
+    proc.cmdline = "sh -c id" and
+    container.name = "victim" and
+    user.name = "root"
+  output: "Blocked specific activity: 'sh -c id' executed by %user.name% in container %container.name% (proc=%proc.name% cmdline=%proc.cmdline%)"
+  priority: WARNING
+  actions: [kill]
+
+- rule: Block whoami execution in victim container
+  desc: Detect and alert on 'sh -c whoami' execution by root in the 'victim' container, indicating potential privilege escalation or reconnaissance.
+  condition: >
+    proc.name = "sh" and
+    proc.cmdline = "sh -c whoami" and
+    container.name = "victim" and
+    user.name = "root" and
+    proc.pname = "containerd-shim"
+  output: "Specific 'whoami' command executed by root in 'victim' container (user=%user.name cmdline=%proc.cmdline container=%container.name parent=%proc.pname)"
+  priority: WARNING
+
+- rule: Block Specific sh -c ls -la /tmp in Victim Container
+  desc: Detects and alerts on the specific execution of `sh -c ls -la /tmp` by root inside the 'victim' container (ID ce34e4163090), spawned by `containerd-shim`. This rule targets the exact activity observed in the log.
+  condition: >
+    evt.type=execve and
+    proc.name="sh" and
+    proc.cmdline="sh -c ls -la /tmp" and
+    proc.pname="containerd-shim" and
+    container.id="ce34e4163090" and
+    container.name="victim" and
+    user.name="root"
+  output: >
+    Specific malicious command `sh -c ls -la /tmp` executed by user %user.name (parent %proc.pname)
+    in container %container.name (%container.id). Blocking/Termination recommended.
+  priority: WARNING
+  tags: [container, mitre_execution, block]
+
+- rule: Block T1555 Simulation CMD in Victim Container
+  desc: Prevents the execution of a specific command line used for T1555 attack simulation within the 'victim' container.
+  condition: >
+    spawned_process and
+    container.name = "victim" and
+    user.name = "root" and
+    proc.name = "sh" and
+    proc.cmdline = "sh -c echo 'Simulating T1555 Attack'"
+  output: "Specific T1555 simulation command blocked in container (user=%user.name container=%container.name cmdline=%proc.cmdline)"
+  priority: WARNING
+  tags: [container, mitre_execution, block]
+  actions:
+    - kill
