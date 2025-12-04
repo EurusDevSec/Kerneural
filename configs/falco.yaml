@@ -8,3 +8,15 @@ file_output:
   enabled: true
   keep_alive: false
   filename: /var/log/falco/falco_events.json_include_output_property
+
+# Tắt output ra stdout đỡ rối (option)
+stdout_output:
+  enabled: false
+
+  # các cấu hình khác giữ mặc định
+  log_stderr: true
+  log_syslog: false
+  webserver:
+    enabled: false
+  program_output:
+    enabled: false
