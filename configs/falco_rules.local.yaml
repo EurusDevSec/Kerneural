@@ -1,7 +1,1 @@
 # Custom rules for Kerneural
-
-- rule: Block Shadow File Access via Cat
-  desc: Blocks attempts to read /etc/shadow via cat command in containers
-  condition: spawned_process and proc.name = "cat" and proc.cmdline contains "/etc/shadow" and container.id != host
-  output: "BLOCKED: Shadow file access attempt - user=%user.name command=%proc.cmdline container=%container.name"
-  priority: WARNING

@@ -66,6 +66,14 @@ fi
 
 print_success "Container '$VICTIM_CONTAINER' is running"
 
+# Clean setup: Create fresh log file
+print_step "Setting up fresh log file..."
+mkdir -p logs
+cat > "$LOG_FILE" << 'EOF'
+EOF
+print_success "Fresh log file created"
+sleep 2
+
 # ============================================================================
 # TECHNIQUE 1: T1059.004 - Command and Scripting Interpreter: Unix Shell
 # ============================================================================
@@ -76,12 +84,36 @@ echo "Attacker Goal: Execute arbitrary commands to explore the system"
 echo ""
 
 # Reset rules for this technique
-print_step "Resetting Falco rules for clean demo"
+print_step "Resetting Falco rules and log file for clean demo"
 echo "# Custom rules for Kerneural" > "$RULE_FILE"
-docker restart falco > /dev/null 2>&1
-sleep 5
-print_success "Rules reset and Falco restarted"
-echo "⏳ Waiting for system to stabilize..."
+
+# Delete log file INSIDE container before restart
+print_step "Clearing Falco log file inside container..."
+docker exec falco rm -f /var/log/falco/falco_events.json 2>/dev/null || true
+sleep 1
+
+print_step "Restarting Falco container..."
+docker restart falco
+echo "⏳ Waiting for Falco to fully start and create fresh log (10 seconds)..."
+sleep 10
+
+# Verify Falco is ready by checking logs
+if docker logs falco 2>&1 | grep -q "Opening.*syscall"; then
+    print_success "✓ Falco is ready and listening for syscalls"
+else
+    print_warning "⚠ Falco may not be fully ready, waiting more..."
+    sleep 5
+fi
+
+# Verify log file exists and is fresh
+if [ -f "$LOG_FILE" ]; then
+    file_size=$(stat -f%z "$LOG_FILE" 2>/dev/null || stat -c%s "$LOG_FILE" 2>/dev/null || echo "0")
+    print_success "✓ Fresh log file created (size: $file_size bytes)"
+else
+    print_warning "⚠ Log file not found yet, Falco will create it on first event"
+fi
+
+echo "⏳ Giving system time to stabilize..."
 sleep 3
 
 # Attack 1a: Simple command execution
@@ -139,10 +171,24 @@ echo ""
 
 print_step "Resetting rules for Technique 2"
 echo "# Custom rules for Kerneural" > "$RULE_FILE"
-docker restart falco > /dev/null 2>&1
-sleep 5
-print_success "Rules reset and Falco restarted"
-echo "⏳ Waiting for system to stabilize..."
+
+# Delete log file INSIDE container before restart  
+docker exec falco rm -f /var/log/falco/falco_events.json 2>/dev/null || true
+sleep 1
+
+print_step "Restarting Falco container..."
+docker restart falco
+echo "⏳ Waiting for Falco to fully start (10 seconds)..."
+sleep 10
+
+if docker logs falco 2>&1 | grep -q "Opening.*syscall"; then
+    print_success "✓ Falco is ready and listening for syscalls"
+else
+    print_warning "⚠ Falco may not be fully ready, waiting more..."
+    sleep 5
+fi
+
+echo "⏳ Giving system time to stabilize..."
 sleep 3
 
 # Attack 2a: Announce credential theft attempt
@@ -203,10 +249,21 @@ echo ""
 
 print_step "Resetting rules for Technique 3"
 echo "# Custom rules for Kerneural" > "$RULE_FILE"
-docker restart falco > /dev/null 2>&1
-sleep 5
-print_success "Rules reset and Falco restarted"
-echo "⏳ Waiting for system to stabilize..."
+sleep 1
+
+print_step "Restarting Falco container..."
+docker restart falco
+echo "⏳ Waiting for Falco to fully start (10 seconds)..."
+sleep 10
+
+if docker logs falco 2>&1 | grep -q "Opening.*syscall"; then
+    print_success "✓ Falco is ready and listening for syscalls"
+else
+    print_warning "⚠ Falco may not be fully ready, waiting more..."
+    sleep 5
+fi
+
+echo "⏳ Giving system time to stabilize..."
 sleep 3
 
 # Attack 3a: Create evidence file
