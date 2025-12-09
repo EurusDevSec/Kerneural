@@ -69,10 +69,9 @@ print_success "Container '$VICTIM_CONTAINER' is running"
 # Clean setup: Create fresh log file
 print_step "Setting up fresh log file..."
 mkdir -p logs
-cat > "$LOG_FILE" << 'EOF'
-EOF
+truncate -s 0 "$LOG_FILE" 2>/dev/null || cat /dev/null > "$LOG_FILE"
 print_success "Fresh log file created"
-sleep 2
+sleep 1
 
 # ============================================================================
 # TECHNIQUE 1: T1059.004 - Command and Scripting Interpreter: Unix Shell
