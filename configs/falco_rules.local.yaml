@@ -193,6 +193,7 @@
 - rule: Container Root Shell Executes LS LA TMP
   desc: Detects an 'sh' shell executing 'ls -la /tmp' as root inside a container, specifically performing a file listing.
   condition: >
+    spawned_process and
     proc.name = "sh" and
     proc.cmdline contains "ls -la /tmp" and
     user.name = "root" and
@@ -231,7 +232,7 @@
 - rule: Detect sh -c id in victim container
   desc: Detects the execution of 'sh -c id' by the root user within the 'victim' container, potentially indicating reconnaissance activity.
   condition: >
-    evt.type=execve and evt.dir=<
+    spawned_process
     and container.id != host
     and proc.name="sh"
     and proc.cmdline="sh -c id"
