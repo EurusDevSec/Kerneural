@@ -98,3 +98,62 @@
   output: "BLOCK: Root user '%user.name' attempted to execute '%proc.cmdline' in container '%container.name' (id=%container.id). This activity has been flagged for termination."
   priority: WARNING
   tags: [container, mitre_credential_access, block_activity]
+
+- rule: detect_t1059_004_simulation_shell_in_container
+  desc: Detects a specific T1059.004 attack simulation involving a root-user spawned 'sh' process from 'runc' within a container, executing a specific echo command.
+  condition: >
+    evt.type=execve and
+    container.id exists and
+    user.name="root" and
+    proc.name="sh" and
+    proc.pname="runc" and
+    proc.cmdline="sh -c echo 'Simulating T1059.004 Attack'"
+  output: "T1059.004 Attack Simulation Detected (user=%user.name container_id=%container.id container_name=%container.name shell=%proc.name parent=%proc.pname cmdline=%proc.cmdline)"
+  priority: WARNING
+  tags: [container, mitre_execution, t1059_004]
+
+- rule: Specific Root Shell by Runc in Victim Container
+  desc: Detects the exact instance of a 'sh' shell spawned with 'sh -c id' by 'runc' as 'root' in the 'victim' container as seen in the log event.
+  condition: >
+    spawned_process and
+    container and
+    proc.name = "sh" and
+    proc.cmdline = "sh -c id" and
+    proc.pname = "runc" and
+    user.name = "root" and
+    container.name = "victim"
+  output: "Specific root shell '%proc.name' with command '%proc.cmdline' spawned by '%proc.pname' in container '%container.name' (user=%user.name container_id=%container.id)"
+  priority: WARNING
+
+- rule: Specific 'whoami' execution in container
+  desc: Detects the execution of 'sh -c whoami' specifically within a container environment.
+  condition: >
+    (proc.name = "sh") and (proc.cmdline = "sh -c whoami") and (container.id != "")
+  output: "Detected specific 'whoami' execution in container (user=%user.name container=%container.name id=%container.id shell=%proc.name cmdline='%proc.cmdline')"
+  priority: WARNING
+
+- rule: Specific ls -la /tmp execution in container
+  desc: Detects the exact command 'sh -c ls -la /tmp' being executed within any container.
+  condition: container.id exists and proc.name = "sh" and proc.cmdline = "sh -c ls -la /tmp"
+  output: "Specific 'sh -c ls -la /tmp' command detected in container (user=%user.name container=%container.name container_id=%container.id proc_name=%proc.name cmdline=%proc.cmdline)"
+  priority: WARNING
+
+- rule: Detect Simulated T1555 Attack Command
+  desc: Detects a specific simulated T1555 attack command for credential access executed within a container.
+  condition: >
+    spawned_process and
+    proc.name = "sh" and
+    proc.cmdline = "sh -c echo 'Simulating T1555 Attack'" and
+    container.id != null and
+    user.name = "root" and
+    container.name = "victim"
+  output: "Simulated T1555 attack command detected (user=%user.name container_name=%container.name shell=%proc.name cmdline=%proc.cmdline)"
+  priority: WARNING
+  tags: [container, mitre_execution, mitre_credential_access]
+
+- rule: Detect Shadow File Access via Shell in Container
+  desc: Detects attempts to read /etc/shadow via a shell command inside a container, indicating potential privilege escalation or data exfiltration.
+  condition: |
+    spawn_shell and container and proc.cmdline contains "cat /etc/shadow"
+  output: "Shadow file access detected in container (user=%user.name container=%container.name cmdline=%proc.cmdline)"
+  priority: WARNING
