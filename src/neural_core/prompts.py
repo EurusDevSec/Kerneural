@@ -17,13 +17,17 @@ REQUIREMENTS:
 2. The output must be ONLY the YAML code block, no markdown formatting or explanation.
 3. Set priority to 'WARNING'.
 4. DO NOT include an 'actions' field. Standard Falco does not support it directly in rules.
-5. For the 'output' field, use %field syntax (e.g., %user.name, %proc.cmdline). DO NOT use trailing % (e.g., %user.name% is INVALID).
+5. For the 'output' field:
+   - Use %field syntax (e.g., %user.name, %proc.cmdline).
+   - DO NOT use trailing % (e.g., %user.name% is INVALID).
+   - DO NOT use brackets [] immediately after a field (e.g., %container.name[%container.id] is INVALID).
+   - Separate fields with spaces or clear delimiters (e.g., "user=%user.name container=%container.name id=%container.id").
 6. The rule name should be unique and descriptive (e.g., "Block [Process] accessing [File]").
 
 EXAMPLE OUTPUT FORMAT:
 - rule: Rule Name
   desc: Description
   condition: ...
-  output: "Detected malicious activity (user=%user.name command=%proc.cmdline)"
+  output: "Detected malicious activity (user=%user.name command=%proc.cmdline container=%container.name id=%container.id)"
   priority: WARNING
 """
