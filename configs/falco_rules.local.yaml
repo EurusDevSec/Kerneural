@@ -34,6 +34,7 @@
 - rule: Block whoami execution in victim container
   desc: Detect and alert on 'sh -c whoami' execution by root in the 'victim' container, indicating potential privilege escalation or reconnaissance.
   condition: >
+    spawned_process and
     proc.name = "sh" and
     proc.cmdline = "sh -c whoami" and
     container.name = "victim" and
@@ -128,13 +129,14 @@
 - rule: Specific 'whoami' execution in container
   desc: Detects the execution of 'sh -c whoami' specifically within a container environment.
   condition: >
+    spawned_process and
     (proc.name = "sh") and (proc.cmdline = "sh -c whoami") and (container.id != "")
   output: "Detected specific 'whoami' execution in container (user=%user.name container=%container.name id=%container.id shell=%proc.name cmdline='%proc.cmdline')"
   priority: WARNING
 
 - rule: Specific ls -la /tmp execution in container
   desc: Detects the exact command 'sh -c ls -la /tmp' being executed within any container.
-  condition: container.id exists and proc.name = "sh" and proc.cmdline = "sh -c ls -la /tmp"
+  condition: spawned_process and container.id exists and proc.name = "sh" and proc.cmdline = "sh -c ls -la /tmp"
   output: "Specific 'sh -c ls -la /tmp' command detected in container (user=%user.name container=%container.name container_id=%container.id proc_name=%proc.name cmdline=%proc.cmdline)"
   priority: WARNING
 
@@ -154,6 +156,6 @@
 - rule: Detect Shadow File Access via Shell in Container
   desc: Detects attempts to read /etc/shadow via a shell command inside a container, indicating potential privilege escalation or data exfiltration.
   condition: |
-    spawn_shell and container and proc.cmdline contains "cat /etc/shadow"
+    spawned_process and container and proc.cmdline contains "cat /etc/shadow"
   output: "Shadow file access detected in container (user=%user.name container=%container.name cmdline=%proc.cmdline)"
   priority: WARNING
