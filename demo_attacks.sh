@@ -249,6 +249,9 @@ echo ""
 
 print_step "Resetting rules for Technique 3"
 echo "# Custom rules for Kerneural" > "$RULE_FILE"
+
+# Delete log file INSIDE container before restart
+docker exec falco rm -f /var/log/falco/falco_events.json 2>/dev/null || true
 sleep 1
 
 print_step "Restarting Falco container..."
