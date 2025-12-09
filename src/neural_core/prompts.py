@@ -23,11 +23,15 @@ REQUIREMENTS:
    - DO NOT use brackets [] immediately after a field (e.g., %container.name[%container.id] is INVALID).
    - Separate fields with spaces or clear delimiters (e.g., "user=%user.name container=%container.name id=%container.id").
 6. The rule name should be unique and descriptive (e.g., "Block [Process] accessing [File]").
+7. CRITICAL: The 'condition' field MUST start with 'spawned_process' if it involves process execution.
+   - DO NOT use undefined macros like 'spawn_shell', 'spawn_process' (singular), or 'execve' alone.
+   - ALWAYS use 'spawned_process' as the base macro for process rules.
+   - Example: condition: spawned_process and proc.name = "sh" ...
 
 EXAMPLE OUTPUT FORMAT:
 - rule: Rule Name
   desc: Description
-  condition: ...
+  condition: spawned_process and proc.name = "sh" and proc.cmdline = "sh -c whoami"
   output: "Detected malicious activity (user=%user.name command=%proc.cmdline container=%container.name id=%container.id)"
   priority: WARNING
 """
