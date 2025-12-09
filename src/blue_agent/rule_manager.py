@@ -31,24 +31,26 @@ class RuleManager:
                 
                 # 3. Check for forbidden fields (like 'actions' which caused issues)
                 if 'actions' in rule:
-                    print(f"Validation Error: Field 'actions' is not supported in standard Falco rules. Removing it.")
+                    print(f"Validation Warning: Field 'actions' is not supported in standard Falco rules. Removing it.")
                     del rule['actions'] # Auto-fix: remove forbidden field
 
-                # 4. Check output syntax (basic check for %field%)
+                # 4. Basic validation: Check for common syntax errors
                 output = rule.get('output', '')
-                if '%' in output:
-                    # Check for invalid %field% syntax (trailing %)
-                    import re
-                    # Regex to find %field% pattern which is invalid in Falco (should be %field)
-                    if re.search(r'%\w+\.?\w+%', output):
-                         print(f"Validation Error: Invalid output syntax (trailing %) in rule '{rule.get('rule')}'")
-                         # Attempt auto-fix could be complex, better to reject or just warn
-                         return False
-                    
-                    # Check for invalid array access syntax like %container.name[%container.id]
-                    if re.search(r'%\w+\.?\w+\[', output):
-                        print(f"Validation Error: Invalid output syntax (array access []) in rule '{rule.get('rule')}'")
-                        return False
+                condition = rule.get('condition', '')
+                
+                # Check that condition and output are not empty
+                if not condition.strip():
+                    print(f"Validation Error: Empty condition in rule '{rule.get('rule')}'")
+                    return False
+                if not output.strip():
+                    print(f"Validation Error: Empty output in rule '{rule.get('rule')}'")
+                    return False
+                
+                # Check priority is valid
+                valid_priorities = ['EMERGENCY', 'ALERT', 'CRITICAL', 'ERROR', 'WARNING', 'NOTICE', 'INFO', 'DEBUG']
+                if rule.get('priority') not in valid_priorities:
+                    print(f"Validation Warning: Invalid priority '{rule.get('priority')}' in rule '{rule.get('rule')}'. Using WARNING.")
+                    rule['priority'] = 'WARNING'
 
             return True
         except yaml.YAMLError as e:
