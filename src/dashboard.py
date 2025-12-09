@@ -7,7 +7,7 @@ from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from src.blue_agent.rule_manager import RuleManager
 from src.neural_core.gemini_client import NeuralBrain
@@ -22,6 +22,26 @@ class KerneuralDashboard:
         self.alerts = []
         self.status = "Monitoring"
         self.last_action = "System initialized"
+
+    def format_time(self, time_str):
+        """Convert UTC timestamp from Falco logs to Local Time (System Time)"""
+        try:
+            # Falco time string example: "2025-12-09T09:14:16.123456789Z"
+            # We only care about up to seconds for display
+            clean_time = time_str.split('.')[0].replace('Z', '')
+            dt = datetime.strptime(clean_time, "%Y-%m-%dT%H:%M:%S")
+            
+            # Calculate local offset
+            now = time.time()
+            if time.localtime(now).tm_isdst and time.daylight:
+                offset_sec = -time.altzone
+            else:
+                offset_sec = -time.timezone
+            
+            local_dt = dt + timedelta(seconds=offset_sec)
+            return local_dt.strftime("%Y-%m-%d %H:%M:%S")
+        except Exception:
+            return time_str[:19]
 
     def make_layout(self) -> Layout:
         layout = Layout(name="root")
@@ -38,7 +58,7 @@ class KerneuralDashboard:
 
     def generate_alert_table(self) -> Table:
         table = Table(title="🚨 Security Alerts", expand=True, border_style="red")
-        table.add_column("Time", style="cyan", no_wrap=True)
+        table.add_column("Time (Local)", style="cyan", no_wrap=True)
         table.add_column("Priority", style="magenta")
         table.add_column("Rule", style="white")
         table.add_column("Container", style="green")
@@ -46,7 +66,7 @@ class KerneuralDashboard:
         # Show last 10 alerts
         for alert in self.alerts[-10:]:
             table.add_row(
-                alert.get('time', 'N/A')[:19],
+                self.format_time(alert.get('time', 'N/A')),
                 alert.get('priority', 'UNKNOWN'),
                 alert.get('rule', 'Unknown Rule'),
                 alert.get('output_fields', {}).get('container.name', 'N/A')
