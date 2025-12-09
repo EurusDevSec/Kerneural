@@ -79,33 +79,38 @@ echo ""
 print_step "Resetting Falco rules for clean demo"
 echo "# Custom rules for Kerneural" > "$RULE_FILE"
 docker restart falco > /dev/null 2>&1
-sleep 3
+sleep 5
 print_success "Rules reset and Falco restarted"
+echo "⏳ Waiting for system to stabilize..."
+sleep 3
 
 # Attack 1a: Simple command execution
 print_attack "T1059.004" "echo 'Simulating T1059.004 Attack'"
 docker exec "$VICTIM_CONTAINER" sh -c "echo 'Simulating T1059.004 Attack'"
-sleep 1
+sleep 3
 
 # Attack 1b: System information gathering
 print_attack "T1059.004" "id"
 docker exec "$VICTIM_CONTAINER" sh -c "id"
-sleep 1
+sleep 3
 
 # Attack 1c: User enumeration
 print_attack "T1059.004" "whoami"
 docker exec "$VICTIM_CONTAINER" sh -c "whoami"
-sleep 1
+sleep 3
 
 # Attack 1d: Privilege escalation check
 print_attack "T1059.004" "uname -a"
 docker exec "$VICTIM_CONTAINER" sh -c "uname -a"
-sleep 1
+sleep 3
 
 # Attack 1e: Exploration
 print_attack "T1059.004" "ls -la /tmp"
 docker exec "$VICTIM_CONTAINER" sh -c "ls -la /tmp"
-sleep 1
+sleep 3
+
+echo "⏳ Waiting for Falco to log all events..."
+sleep 2
 
 print_step "Checking Falco logs for T1059.004 detections"
 echo "Events detected:"
@@ -135,13 +140,15 @@ echo ""
 print_step "Resetting rules for Technique 2"
 echo "# Custom rules for Kerneural" > "$RULE_FILE"
 docker restart falco > /dev/null 2>&1
-sleep 3
+sleep 5
 print_success "Rules reset and Falco restarted"
+echo "⏳ Waiting for system to stabilize..."
+sleep 3
 
 # Attack 2a: Announce credential theft attempt
 print_attack "T1555" "echo 'Simulating T1555 Attack'"
 docker exec "$VICTIM_CONTAINER" sh -c "echo 'Simulating T1555 Attack'"
-sleep 1
+sleep 3
 
 # Attack 2b: Read /etc/shadow (highly sensitive)
 print_attack "T1555" "cat /etc/shadow"
@@ -150,8 +157,11 @@ if [[ "$result" == "BLOCKED" ]]; then
     print_error "Access Denied - Rule is blocking this!"
 else
     echo "$result" | head -2
-    sleep 1
+    sleep 3
 fi
+
+echo "⏳ Pausing between attacks..."
+sleep 2
 
 # Attack 2c: Read /etc/passwd (less sensitive but still important)
 print_attack "T1555" "cat /etc/passwd"
@@ -161,6 +171,9 @@ if [[ "$result" == "BLOCKED" ]]; then
 else
     echo "$result" | head -2
 fi
+
+echo "⏳ Waiting for Falco to log all events..."
+sleep 2
 
 print_step "Checking Falco logs for T1555 detections"
 echo "Events detected:"
@@ -191,18 +204,26 @@ echo ""
 print_step "Resetting rules for Technique 3"
 echo "# Custom rules for Kerneural" > "$RULE_FILE"
 docker restart falco > /dev/null 2>&1
-sleep 3
+sleep 5
 print_success "Rules reset and Falco restarted"
+echo "⏳ Waiting for system to stabilize..."
+sleep 3
 
 # Attack 3a: Create evidence file
 print_attack "T1070.004" "touch /tmp/evidence.txt"
 docker exec "$VICTIM_CONTAINER" sh -c "touch /tmp/evidence.txt && echo 'Evidence file created'"
-sleep 1
+sleep 3
+
+echo "⏳ Pausing between attacks..."
+sleep 2
 
 # Attack 3b: Delete evidence
 print_attack "T1070.004" "rm -f /tmp/evidence.txt"
 docker exec "$VICTIM_CONTAINER" sh -c "rm -f /tmp/evidence.txt && echo 'File deleted'"
-sleep 1
+sleep 3
+
+echo "⏳ Waiting for Falco to log all events..."
+sleep 2
 
 print_step "Checking Falco logs for T1070.004 detections"
 echo "File operations detected:"
