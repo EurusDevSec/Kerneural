@@ -159,3 +159,62 @@
     spawned_process and container and proc.cmdline contains "cat /etc/shadow"
   output: "Shadow file access detected in container (user=%user.name container=%container.name cmdline=%proc.cmdline)"
   priority: WARNING
+
+- rule: Simulated T1059.004 Attack in Victim Container
+  desc: Detects a specific T1059.004 (OS Credential Dumping) simulation attempt involving a shell execution in the 'victim' container by root user.
+  condition: >
+    spawned_process and
+    proc.name = "sh" and
+    container.id = "44c82d68306d" and
+    container.name = "victim" and
+    user.name = "root" and
+    proc.cmdline = "sh -c echo 'Simulating T1059.004 Attack'"
+  output: "Simulated T1059.004 Attack detected: shell='%proc.name' command='%proc.cmdline' by user='%user.name' in container='%container.name' (ID=%container.id)"
+  priority: WARNING
+
+- rule: Specific Root Shell 'sh -c id' in Container
+  desc: Detects the execution of 'sh -c id' by the root user within a container, indicating potential reconnaissance or initial compromise.
+  condition: >
+    evt.type=execve and
+    proc.name="sh" and
+    proc.cmdline="sh -c id" and
+    user.name="root" and
+    container.id != host
+  output: "Specific root shell command 'sh -c id' detected in container (user=%user.name container_name=%container.name container_id=%container.id proc_name=%proc.name cmdline='%proc.cmdline')"
+  priority: WARNING
+
+- rule: Detect Specific 'whoami' Command in Victim Container
+  desc: Detects the execution of 'sh -c whoami' as root, spawned by runc, specifically within the 'victim' container.
+  condition: >
+    spawned_process and proc.name = "sh" and proc.cmdline = "sh -c whoami" and container.name = "victim" and user.name = "root" and proc.pname = "runc"
+  output: 'Specific ''whoami'' command detected in container (user=%user.name container_name=%container.name container_id=%container.id shell_process=%proc.name parent_process=%proc.pname cmdline="%proc.cmdline")'
+  priority: WARNING
+
+- rule: Container Root Shell Executes LS LA TMP
+  desc: Detects an 'sh' shell executing 'ls -la /tmp' as root inside a container, specifically performing a file listing.
+  condition: >
+    proc.name = "sh" and
+    proc.cmdline contains "ls -la /tmp" and
+    user.name = "root" and
+    container.id != host
+  output: "Specific file listing in container detected: user=%user.name container=%container.name id=%container.id shell=%proc.name cmdline=%proc.cmdline"
+  priority: WARNING
+
+- rule: Detect T1555 Attack Simulation Shell
+  desc: Detects the specific T1555 attack simulation command line executed in the 'victim' container.
+  condition: >
+    spawned_process and 
+    container.name = "victim" and 
+    proc.cmdline = "sh -c echo 'Simulating T1555 Attack'"
+  output: "T1555 Attack Simulation detected: Shell '%proc.name' spawned by '%proc.pname' as user '%user.name' in container '%container.name' (%container.id) with command '%proc.cmdline'"
+  priority: WARNING
+
+- rule: Container Shell Reads Shadow File
+  desc: Detects when a shell within a container executes a command attempting to read the /etc/shadow file.
+  condition: >
+    spawned_process and
+    container.id != null and
+    proc.name = "sh" and
+    proc.cmdline contains "cat /etc/shadow"
+  output: "Container shell accessed /etc/shadow (user=%user.name container=%container.name id=%container.id shell=%proc.name parent=%proc.pname command=%proc.cmdline)"
+  priority: WARNING
