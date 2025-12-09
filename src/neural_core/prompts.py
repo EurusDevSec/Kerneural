@@ -27,6 +27,7 @@ REQUIREMENTS:
    - DO NOT use undefined macros like 'spawn_shell', 'spawn_process' (singular), or 'execve' alone.
    - ALWAYS use 'spawned_process' as the base macro for process rules.
    - Example: condition: spawned_process and proc.name = "sh" ...
+8. CRITICAL: DO NOT use the macro 'in_container'. It is undefined. Use 'container' or 'container.id != host' instead.
 
 EXAMPLE OUTPUT FORMAT:
 - rule: Rule Name
