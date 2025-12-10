@@ -1,1 +1,7 @@
 # Custom rules for Kerneural
+
+- rule: Detect Cat Reading Etc Shadow
+  desc: Alerts when the 'cat' process attempts to read the '/etc/shadow' file, typically indicating suspicious activity.
+  condition: spawned_process and evt.type = "openat" and proc.name = "cat" and proc.exepath = "/usr/bin/cat" and fd.name = "/etc/shadow" and proc.cmdline = "cat /etc/shadow" and proc.pname = "sh"
+  output: "Sensitive file read by untrusted program: user=%user.name (uid=%user.uid) process=%proc.name (cmdline=%proc.cmdline) attempted to read %fd.name (parent=%proc.pname)"
+  priority: WARNING
