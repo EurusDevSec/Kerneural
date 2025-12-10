@@ -5,3 +5,27 @@
   condition: spawned_process and evt.type = "openat" and proc.name = "cat" and proc.exepath = "/usr/bin/cat" and fd.name = "/etc/shadow" and proc.cmdline = "cat /etc/shadow" and proc.pname = "sh"
   output: "Sensitive file read by untrusted program: user=%user.name (uid=%user.uid) process=%proc.name (cmdline=%proc.cmdline) attempted to read %fd.name (parent=%proc.pname)"
   priority: WARNING
+
+- rule: Detect Shell Script in Tmp
+  desc: Detects shell scripts being created or executed in /tmp, common in T1059.004
+  condition: spawned_process and (proc.cmdline contains "/tmp/" or proc.args contains "/tmp/") and (proc.name = "sh" or proc.name = "bash")
+  output: "Suspicious shell script activity in /tmp: user=%user.name command=%proc.cmdline"
+  priority: NOTICE
+
+- rule: Atomic Red Team /tmp Shell Script Execution
+  desc: Detects the execution of a shell command that creates and runs a script in /tmp containing Atomic Red Team specific strings and network activity, as seen in the provided Falco log event.
+  condition: spawned_process and proc.name = "sh" and proc.cmdline contains "echo Hello from the Atomic Red Team" and proc.cmdline contains "ping -c 4 8.8.8.8" and proc.cmdline contains "/tmp/art.sh"
+  output: "Suspicious Atomic Red Team shell script activity detected. User: %user.name Command: %proc.cmdline Host: %hostname"
+  priority: WARNING
+
+- rule: Detect Atomic Red Team Shell Script Creation in Tmp
+  desc: Detects a specific Atomic Red Team technique involving the creation of a shell script 'art.sh' in the /tmp directory by the root user using 'sh'.
+  condition: spawned_process and user.name = "root" and proc.name = "sh" and proc.cmdline = "sh -c echo 'echo Hello from the Atomic Red Team' > /tmp/art.sh"
+  output: "Suspicious Atomic Red Team shell script creation: user=%user.name command=%proc.cmdline"
+  priority: WARNING
+
+- rule: Detect Suspicious Ping Script Creation in Tmp
+  desc: Detects a specific command creating a ping script in the /tmp directory by the root user.
+  condition: spawned_process and proc.name = "sh" and proc.cmdline = "sh -c echo 'ping -c 4 8.8.8.8' >> /tmp/art.sh" and user.name = "root" and container.id != host
+  output: "Detected suspicious ping script creation in /tmp: user=%user.name command=%proc.cmdline"
+  priority: WARNING
